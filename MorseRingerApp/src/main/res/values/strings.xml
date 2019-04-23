@@ -9,6 +9,7 @@
     <string name="edit_message">Test message</string>
     <string name="button_play">Play</string>
     <string name="button_save">Save</string>
+    <string name="button_play_last">Play Last SMS Message</string>
     <string name="edit_preamble">Preamble</string>
     <string name="edit_speed">WPM</string>
     <string name="edit_tone">Tone</string>

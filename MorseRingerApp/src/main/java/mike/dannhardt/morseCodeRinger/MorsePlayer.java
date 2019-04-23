@@ -83,7 +83,7 @@ public class MorsePlayer implements Runnable {
                 if ( lastSmsMsg != null && lastSmsMsg.length() > 0)
                     setMessage(lastSmsMsg);
                 else
-                    setMessage("- -");
+                    setMessage("No SMS MSG");
             } else if (intent.getAction().equals(Constants.PHONE_STATE_CHG)) {
                 int ringState = intent.getIntExtra(Constants.EXTRA_PHONE_STATE, 0);
                 String incomingNumber = intent.getStringExtra(Constants.EXTRA_FROM_NUMBER);

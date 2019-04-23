@@ -175,7 +175,14 @@ public class SetupActivity extends AppCompatActivity {
     }
 
     /** Called when the user clicks the Play button */
-    public void playMessage(View view) {
+    public void playLastSmsMessage(View view) {
+        Intent localIntent = new Intent(Constants.EXTRA_PLAY_SMS);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+    }
+
+
+    /** Called when the user clicks the Play button */
+    public void playTestMessage(View view) {
         EditText editText = (EditText) findViewById(R.id.edit_message);
         String phoneNumber = editText.getText().toString();
 

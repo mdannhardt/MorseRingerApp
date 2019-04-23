@@ -6,6 +6,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
+    <Button
+        android:layout_width="288dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:onClick="playLastSmsMessage"
+        android:paddingTop="300px"
+        android:text="@string/button_play_last" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -117,7 +125,7 @@
             android:layout_height="wrap_content"
             android:text="@string/button_play"
             android:paddingTop="20px"
-            android:onClick="playMessage" />
+            android:onClick="playTestMessage" />
     </LinearLayout>
 
     <CheckBox
