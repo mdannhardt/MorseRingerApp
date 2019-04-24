@@ -1,7 +1,9 @@
 package mike.dannhardt.morseCodeRinger;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
@@ -40,6 +42,10 @@ public class SetupActivity extends AppCompatActivity {
         m_Wpm = settings.getInt(Constants.PREF_WPR, Constants.DFT_WPM);
         m_Tone = settings.getInt(Constants.PREF_TONE, Constants.DFT_TONE);
         m_AnnounceRun = settings.getBoolean(Constants.EXTRA_ANNC_START, true);
+
+        // Intent to reset Play/Stop Last SMS Message button text
+        IntentFilter filter = new IntentFilter(Constants.SMS_MSG);
+        LocalBroadcastManager.getInstance(this.getBaseContext()).registerReceiver(playLastSmsMessageCmp, filter);
 
         EditText editText;
         editText = (EditText) findViewById(R.id.edit_preamble);
@@ -185,6 +191,18 @@ public class SetupActivity extends AppCompatActivity {
         }
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
+
+    /** Called when Last SMS message finished */
+    private BroadcastReceiver playLastSmsMessageCmp = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getStringExtra(Constants.SMS_PLAY_ACTION);
+            if (action.equals("stop")){
+                Button btnPlaySms = (Button)findViewById(R.id.btn_playSms);
+                btnPlaySms.setText(getResources().getString(R.string.button_play_last));
+            }
+        }
+    };
 
 
     /** Called when the user clicks the Play button */

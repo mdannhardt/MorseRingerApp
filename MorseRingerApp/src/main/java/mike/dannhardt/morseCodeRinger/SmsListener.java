@@ -23,7 +23,7 @@ public class SmsListener extends BroadcastReceiver {
                 msgBody = messages[i].getMessageBody();
             }
             if (messages.length>0) {
-                Intent localIntent = new Intent(Constants.BROADCAST_ACTION)
+                Intent localIntent = new Intent(Constants.SMS_RCVD)
                         .putExtra(Constants.EXTRA_FROM_NUMBER, msgFrom)
                         .putExtra(Constants.EXTRA_SMS_DATA, msgBody);
                 LocalBroadcastManager.getInstance(context).sendBroadcast(localIntent);

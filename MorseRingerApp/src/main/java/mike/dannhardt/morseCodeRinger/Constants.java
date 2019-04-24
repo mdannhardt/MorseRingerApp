@@ -15,19 +15,27 @@ public final class Constants {
     public static final Integer DFT_WPM = 11;
     public static final Integer DFT_TONE = 700;
 
-    // Defines a custom Intent action
+    // Defines a custom Intent actions from Setup
     public static final String BROADCAST_ACTION =
             "mike.dannhardt.morseCodeRinger.BROADCAST";
 
+    // Phone state changed
     public static final String PHONE_STATE_CHG =
             "mike.dannhardt.morseCodeRinger.PHONE_STATE";
 
+    // Phone state changed
+    public static final String SMS_RCVD =
+            "mike.dannhardt.morseCodeRinger.SMS_RCVD";
+
+    // Screen turned ON
     public static final String SCREEN_ON =
             "mike.dannhardt.morseCodeRinger.SCREEN_ON";
 
+    // Screen turned OFF
     public static final String SCREEN_OFF =
             "mike.dannhardt.morseCodeRinger.SCREEN_OFF";
 
+    // Play last SMS message
     public static final String SMS_MSG =
             "mike.dannhardt.morseCodeRinger.SMS_MSG";
 
