@@ -26,20 +26,20 @@ import android.media.AudioTrack;
 public class MorsePlayer implements Runnable {
 
 
-    Context m_context;
-    AudioManager am;
+    private Context m_context;
+    private AudioManager am;
 
     private String TAG = "MorsePlayer";
     private final int SAMPLE_RATE = 8000;
     private int wpmSpeed;
     private int toneHertz;
-    private byte ditSnd[];
-    private byte dahSnd[];
-    private byte pauseInnerSnd[];
+    private byte[] ditSnd;
+    private byte[] dahSnd;
+    private byte[] pauseInnerSnd;
     private AKASignaler signaler = AKASignaler.getInstance();
     private String currentMessage;  // message to play in morse
     private String preambleMessage;
-    private boolean playCalllerId;
+    private boolean playCallerId;
     private int playMessageLoopCnt;
     private boolean flgRun;
     private boolean announceOnRun;
@@ -60,7 +60,7 @@ public class MorsePlayer implements Runnable {
 
         IntentFilter filter = new IntentFilter(Constants.BROADCAST_ACTION);
         filter.addAction(Constants.PHONE_STATE_CHG);
-        filter.addAction(Constants.EXTRA_PLAY_SMS);
+        filter.addAction(Constants.SMS_MSG);
         filter.addAction(Constants.SCREEN_OFF);
         filter.addAction(Constants.SCREEN_ON);
         LocalBroadcastManager.getInstance(m_context).registerReceiver(mMessageReceiver, filter);
@@ -73,80 +73,92 @@ public class MorsePlayer implements Runnable {
         public void onReceive(Context context, Intent intent) {
             String message;
             int val;
-            if (intent.getAction().equals(Constants.SCREEN_OFF)) {
-                screenOn = false;
-            } else if (intent.getAction().equals(Constants.SCREEN_ON)) {
-                screenOn = true;
-                playMessageLoopCnt = 0;
-            } else if (intent.getAction().equals(Constants.EXTRA_PLAY_SMS)) {
-                playMessageLoopCnt = 1;
-                if ( lastSmsMsg != null && lastSmsMsg.length() > 0)
-                    setMessage(lastSmsMsg);
-                else
-                    setMessage("No SMS MSG");
-            } else if (intent.getAction().equals(Constants.PHONE_STATE_CHG)) {
-                int ringState = intent.getIntExtra(Constants.EXTRA_PHONE_STATE, 0);
-                String incomingNumber = intent.getStringExtra(Constants.EXTRA_FROM_NUMBER);
-                switch (ringState) {
-                    case TelephonyManager.CALL_STATE_RINGING:
-                        // called when someone is ringing to this phone
-                        Log.i(TAG, "oMorsePlayer: onReceive(ring) Caller: " + incomingNumber);
-                        String caller = contactNameByPhoneNumber(m_context, incomingNumber);
-                        playCalllerId = true;
-                        playMessageLoopCnt = 2;
-                        setMessage("de " + caller);
-                        break;
-                    case TelephonyManager.CALL_STATE_IDLE:
-                    case TelephonyManager.CALL_STATE_OFFHOOK:
-                    default:
-                        Log.i(TAG, "MorsePlayer: onReceive(ringState) Terminate!: " + ringState);
-                        playCalllerId = false;
-                        break;
-                }
-            } else if (intent.getAction().equals(Constants.BROADCAST_ACTION)) {
-                if (intent.hasExtra(Constants.EXTRA_TEST_STRING)) {
-                    message = intent.getStringExtra(Constants.EXTRA_TEST_STRING);
-                    if (message != null && message.length() > 0) {
-                        Log.i(TAG, "MorsePlayer: onReceive(test)");
+            switch (intent.getAction()) {
+                case Constants.SCREEN_OFF:
+                    screenOn = false;
+                    break;
+                case Constants.SCREEN_ON:
+                    screenOn = true;
+                    playMessageLoopCnt = 0;
+                    break;
+                case Constants.SMS_MSG:
+                    String action = intent.getStringExtra(Constants.SMS_PLAY_ACTION);
+                    if (action.equals("stop"))
+                        playMessageLoopCnt = 0;
+                    else {
                         playMessageLoopCnt = 1;
-                        setMessage(message);
+                        if (lastSmsMsg != null && lastSmsMsg.length() > 0)
+                            setMessage(lastSmsMsg);
+                        else
+                            setMessage("No SMS MSG");
                     }
-                }
-                if (intent.hasExtra(Constants.EXTRA_SET_PREAMBLE)) {
-                    message = intent.getStringExtra(Constants.EXTRA_SET_PREAMBLE);
-                    if (message != null && message.length() > 0) {
-                        Log.i(TAG, "MorsePlayer: onReceive(preamble)");
-                        setPreambleMessage(message);
+                    break;
+                case Constants.PHONE_STATE_CHG:
+                    int ringState = intent.getIntExtra(Constants.EXTRA_PHONE_STATE, 0);
+                    String incomingNumber = intent.getStringExtra(Constants.EXTRA_FROM_NUMBER);
+                    switch (ringState) {
+                        case TelephonyManager.CALL_STATE_RINGING:
+                            // called when someone is ringing to this phone
+                            Log.i(TAG, "oMorsePlayer: onReceive(ring) Caller: " + incomingNumber);
+                            String caller = contactNameByPhoneNumber(m_context, incomingNumber);
+                            playCallerId = true;
+                            playMessageLoopCnt = 2;
+                            setMessage("de " + caller);
+                            break;
+                        case TelephonyManager.CALL_STATE_IDLE:
+                        case TelephonyManager.CALL_STATE_OFFHOOK:
+                        default:
+                            Log.i(TAG, "MorsePlayer: onReceive(ringState) Terminate!: " + ringState);
+                            playCallerId = false;
+                            break;
                     }
-                }
-                if (intent.hasExtra(Constants.EXTRA_SET_SPEED)) {
-                    val = intent.getIntExtra(Constants.EXTRA_SET_SPEED, 13);
-                    Log.i(TAG, "MorsePlayer: onReceive(speed)");
-                    setSpeed(val);
-                    buildSounds();
-                }
-                if (intent.hasExtra(Constants.EXTRA_SET_TONE)) {
-                    val = intent.getIntExtra(Constants.EXTRA_SET_TONE, 500);
-                    Log.i(TAG, "MorsePlayer: onReceive(tone)");
-                    setTone(val);
-                    buildSounds();
-                }
-                if (intent.hasExtra(Constants.EXTRA_FROM_NUMBER)) {
-                    if ( screenOn == false ) {
-                        String smsFrom = intent.getStringExtra(Constants.EXTRA_FROM_NUMBER);
-                        Log.i(TAG, "MorsePlayer: onReceive(sms)");
-                        String caller = contactNameByPhoneNumber(m_context, smsFrom);
-                        playMessageLoopCnt = 2;
-                        setMessage("SMS de " + caller);
+                    break;
+                case Constants.BROADCAST_ACTION:
+                    if (intent.hasExtra(Constants.EXTRA_TEST_STRING)) {
+                        message = intent.getStringExtra(Constants.EXTRA_TEST_STRING);
+                        if (message != null && message.length() > 0) {
+                            Log.i(TAG, "MorsePlayer: onReceive(test)");
+                            playMessageLoopCnt = 1;
+                            setMessage(message);
+                        }
                     }
-                }
-                if (intent.hasExtra(Constants.EXTRA_SMS_DATA)) {
-                    lastSmsMsg = intent.getStringExtra(Constants.EXTRA_SMS_DATA);
-                }
-                if (intent.hasExtra(Constants.EXTRA_ANNC_START)) {
-                    announceOnRun = intent.getBooleanExtra(Constants.EXTRA_ANNC_START, true);
-                    Log.i(TAG, "MorsePlayer: onReceive(annc start)");
-                }
+                    if (intent.hasExtra(Constants.EXTRA_SET_PREAMBLE)) {
+                        message = intent.getStringExtra(Constants.EXTRA_SET_PREAMBLE);
+                        if (message != null && message.length() > 0) {
+                            Log.i(TAG, "MorsePlayer: onReceive(preamble)");
+                            setPreambleMessage(message);
+                        }
+                    }
+                    if (intent.hasExtra(Constants.EXTRA_SET_SPEED)) {
+                        val = intent.getIntExtra(Constants.EXTRA_SET_SPEED, Constants.DFT_WPM);
+                        Log.i(TAG, "MorsePlayer: onReceive(speed)");
+                        setSpeed(val);
+                        buildSounds();
+                    }
+                    if (intent.hasExtra(Constants.EXTRA_SET_TONE)) {
+                        val = intent.getIntExtra(Constants.EXTRA_SET_TONE, Constants.DFT_TONE);
+                        Log.i(TAG, "MorsePlayer: onReceive(tone)");
+                        setTone(val);
+                        buildSounds();
+                    }
+                    if (intent.hasExtra(Constants.EXTRA_FROM_NUMBER)) {
+                        if (!screenOn) {
+                            String smsFrom = intent.getStringExtra(Constants.EXTRA_FROM_NUMBER);
+                            Log.i(TAG, "MorsePlayer: onReceive(sms)");
+                            String caller = contactNameByPhoneNumber(m_context, smsFrom);
+                            playMessageLoopCnt = 2;
+                            setMessage("SMS de " + caller);
+                        }
+                    }
+                    if (intent.hasExtra(Constants.EXTRA_SMS_DATA)) {
+                        lastSmsMsg = intent.getStringExtra(Constants.EXTRA_SMS_DATA);
+                    }
+                    if (intent.hasExtra(Constants.EXTRA_ANNC_START)) {
+                        announceOnRun = intent.getBooleanExtra(Constants.EXTRA_ANNC_START, true);
+                        Log.i(TAG, "MorsePlayer: onReceive(annc start)");
+                    }
+                    break;
+                default:
             }
         }
     };
@@ -301,9 +313,9 @@ public class MorsePlayer implements Runnable {
 
             // Now the caller name or message. Play until no longer ringing OR
             // the set play count (for example SMS announcements).
-            while (playCalllerId || playMessageLoopCnt > 0) {
+            while (playCallerId || playMessageLoopCnt > 0) {
                 for (MorseBit bit : callerIdPattern) {
-                    if (!(playCalllerId || playMessageLoopCnt > 0) )
+                    if (!(playCallerId || playMessageLoopCnt > 0) )
                         break;
                     writeBit( bit); // blocking
                 }

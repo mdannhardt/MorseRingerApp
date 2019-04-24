@@ -78,7 +78,7 @@ public class CallDetectService extends Service {
                     shakeStart = System.currentTimeMillis();
                 }
                 else if (++shakeCnt >= 3){
-                    Intent localIntent = new Intent(Constants.EXTRA_PLAY_SMS);
+                    Intent localIntent = new Intent(Constants.SMS_MSG);
                     // Broadcasts the Intent to receivers in this app.
                     LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(localIntent);
                     shakeCnt = 0;

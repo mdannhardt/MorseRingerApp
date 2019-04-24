@@ -4,8 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -49,12 +48,10 @@ public class SetupActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
 
-            public void beforeTextChanged(CharSequence s, int start,
-                                          int count, int after) {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
-            public void onTextChanged(CharSequence s, int start,
-                                      int before, int count) {
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 m_Preamble = s.toString();
 
                 Intent localIntent = new Intent(Constants.BROADCAST_ACTION)
@@ -71,12 +68,10 @@ public class SetupActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
 
-            public void beforeTextChanged(CharSequence s, int start,
-                                          int count, int after) {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
-            public void onTextChanged(CharSequence s, int start,
-                                      int before, int count) {
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 try {
                     m_Wpm = Integer.parseInt(s.toString());
                 } catch(NumberFormatException nfe) {
@@ -94,12 +89,10 @@ public class SetupActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
 
-            public void beforeTextChanged(CharSequence s, int start,
-                                          int count, int after) {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
-            public void onTextChanged(CharSequence s, int start,
-                                      int before, int count) {
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 int tone;
                 try {
                     tone = Integer.parseInt(s.toString());
@@ -174,9 +167,22 @@ public class SetupActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /** Called when the user clicks the Play button */
+    /** Called when the user clicks the Play or Stop Last SMS message button */
     public void playLastSmsMessage(View view) {
-        Intent localIntent = new Intent(Constants.EXTRA_PLAY_SMS);
+        Button btnPlaySms = (Button)findViewById(R.id.btn_playSms);
+        String btnLabel = btnPlaySms.getText().toString();
+
+        Intent localIntent = new Intent(Constants.SMS_MSG);
+
+        // Select the intent and toggle the button
+        if (btnLabel.equals(getResources().getString(R.string.button_play_last))) {
+            localIntent.putExtra(Constants.SMS_PLAY_ACTION, "play");
+            btnPlaySms.setText(getResources().getString(R.string.button_stop_last));
+        }
+        else {
+            localIntent.putExtra(Constants.SMS_PLAY_ACTION, "stop");
+            btnPlaySms.setText(getResources().getString(R.string.button_play_last));
+        }
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 

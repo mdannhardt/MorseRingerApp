@@ -28,7 +28,13 @@ public final class Constants {
     public static final String SCREEN_OFF =
             "mike.dannhardt.morseCodeRinger.SCREEN_OFF";
 
-    // Defines the keys for the status "extra" in an Intent
+    public static final String SMS_MSG =
+            "mike.dannhardt.morseCodeRinger.SMS_MSG";
+
+    // Defines the keys for the "extra" in Intents
+    public static final String SMS_PLAY_ACTION =
+            "mike.dannhardt.morseCodeRinger.SMS_PLAY_ACTION";
+
     public static final String EXTRA_TEST_STRING =
             "mike.dannhardt.morseCodeRinger.TEST_STRING";
 
@@ -49,9 +55,6 @@ public final class Constants {
 
     public static final String EXTRA_FROM_NUMBER =
             "mike.dannhardt.morseCodeRinger.EXTRA_FROM_NUMBER";
-
-    public static final String EXTRA_PLAY_SMS =
-            "mike.dannhardt.morseCodeRinger.EXTRA_PLAY_SMS";
 
     public static final String EXTRA_ANNC_START =
             "mike.dannhardt.morseCodeRinger.EXTRA_ANNC_START";
