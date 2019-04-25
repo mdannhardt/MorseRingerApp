@@ -121,7 +121,7 @@ public class MorsePlayer implements Runnable {
                     String action = intent.getStringExtra(Constants.SMS_PLAY_ACTION);
                     if (action.equals("stop"))
                         playMessageLoopCnt = 0;
-                    else {
+                    else if (action.equals("play")) {
                         playMessageLoopCnt = 1;
                         if (lastSmsMsg != null && lastSmsMsg.length() > 0)
                             setMessage(lastSmsMsg);
@@ -332,7 +332,7 @@ public class MorsePlayer implements Runnable {
 
                 // Signal back to the SetupIntent screen to change Play Last SMS to STOP Last SMS
                 Intent localIntent = new Intent(Constants.SMS_MSG);
-                localIntent.putExtra(Constants.SMS_PLAY_ACTION, "stop");
+                localIntent.putExtra(Constants.SMS_PLAY_ACTION, "finished");
                 LocalBroadcastManager.getInstance(m_context).sendBroadcast(localIntent);
             }
         } catch (Exception ex ) {

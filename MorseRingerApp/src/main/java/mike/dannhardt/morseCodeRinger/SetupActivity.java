@@ -197,7 +197,7 @@ public class SetupActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getStringExtra(Constants.SMS_PLAY_ACTION);
-            if (action.equals("stop")){
+            if (action.equals("finished")){
                 Button btnPlaySms = (Button)findViewById(R.id.btn_playSms);
                 btnPlaySms.setText(getResources().getString(R.string.button_play_last));
             }
