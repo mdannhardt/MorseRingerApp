@@ -1,30 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="mike.dannhardt.morseCodeRinger" >
+    package="mike.dannhardt.morseCodeRinger">
+
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS"/>
+    <uses-permission android:name="android.permission.READ_SMS" />
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
+        <activity android:name="mike.dannhardt.MainActivity"></activity>
 
-        <receiver android:enabled="true" android:name="mike.dannhardt.morseCodeRinger.ServiceStarter"
+        <receiver
+            android:name=".ServiceStarter"
+            android:enabled="true"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
-
         <receiver
-            android:name="mike.dannhardt.morseCodeRinger.SmsListener"
+            android:name=".SmsListener"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.RECEIVE_SMS">
@@ -32,9 +36,8 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
-
         <receiver
-            android:name="mike.dannhardt.morseCodeRinger.CallListener"
+            android:name=".CallListener"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -43,31 +46,29 @@
         </receiver>
 
         <activity
-            android:name="mike.dannhardt.morseCodeRinger.SetupActivity"
+            android:name=".SetupActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar" >
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
-            android:name="mike.dannhardt.morseCodeRinger.DisplayMessageActivity"
+            android:name=".DisplayMessageActivity"
             android:label="@string/title_activity_display_message"
-            android:parentActivityName="mike.dannhardt.morseCodeRinger.SetupActivity"
-            android:theme="@style/AppTheme.NoActionBar" >
+            android:parentActivityName=".SetupActivity"
+            android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="mike.dannhardt.morseCodeRinger.SetupActivity" />
         </activity>
 
         <service
-            android:name="mike.dannhardt.morseCodeRinger.CallDetectService"
+            android:name=".CallDetectService"
             android:enabled="true"
-            android:exported="true">
-        </service>
-
+            android:exported="true"></service>
     </application>
 
 </manifest>

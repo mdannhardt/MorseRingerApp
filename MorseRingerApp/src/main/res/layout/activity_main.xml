@@ -10,9 +10,9 @@
     <android.support.design.widget.AppBarLayout android:layout_height="wrap_content"
         android:layout_width="match_parent" android:theme="@style/AppTheme.AppBarOverlay">
 
-    <android.support.v7.widget.Toolbar android:id="@+id/toolbar"
-        android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary" app:popupTheme="@style/AppTheme.PopupOverlay" />
+        <android.support.v7.widget.Toolbar android:id="@+id/toolbar"
+            android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary" app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </android.support.design.widget.AppBarLayout>
 
@@ -24,7 +24,7 @@
             android:layout_width="fill_parent"
             android:paddingLeft="16dp"
             android:paddingRight="16dp"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
             <Button
                 android:id="@+id/btn_playSms"
@@ -193,7 +193,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="150dp"
                 android:onClick="saveSetting"
-                android:paddingTop="20px"
+                android:paddingTop="20dp"
                 android:text="@string/button_save"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
