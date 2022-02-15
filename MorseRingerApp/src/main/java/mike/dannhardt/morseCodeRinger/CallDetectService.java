@@ -16,13 +16,14 @@ import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
 /**
  * Created by Mike on 10/4/2015.
  */
 public class CallDetectService extends Service {
     private MorsePlayer m_MorsePlayer;
-/*
+
     private SensorManager mSensorManager;
     private float mAccel; // acceleration apart from gravity
     private float mAccelCurrent; // current acceleration including gravity
@@ -38,10 +39,9 @@ public class CallDetectService extends Service {
     private float mZAccelLast; // last acceleration including gravity
     private long shakeStart = 0;
     private int shakeCnt = 0;
-*/
-/*
 
     private final SensorEventListener mSensorListener = new SensorEventListener() {
+        @Override
         public void onSensorChanged(SensorEvent se) {
             float x = se.values[0];
             float y = se.values[1];
@@ -51,9 +51,6 @@ public class CallDetectService extends Service {
             mAccelCurrent = (float) Math.sqrt((double) (x*x + y*y + z*z));
             float delta = mAccelCurrent - mAccelLast;
             mAccel = mAccel * 0.9f + delta; // perform low-cut filter
-
-            */
-/* X, Y an Z here just to study if I can detect a particular type of movement *//*
 
             mXAccelLast = mXAccelCurrent;
             mXAccelCurrent = x;
@@ -70,8 +67,8 @@ public class CallDetectService extends Service {
             delta = mZAccelCurrent - mZAccelLast;
             mZAccel = mZAccel * 0.9f + delta; // perform low-cut filter
 
-            // Current 'shake detect' is three rapid accelerations (>5.0 magnitude) within 4seconds
-            if ( mAccel > 5.0 ){
+            // Current 'shake detect' is three rapid accelerations (>4.5 magnitude) within 4seconds
+            if ( mYAccel > 4.5 ) {
                 long deltaTime = System.currentTimeMillis() - shakeStart;
                 if (shakeCnt == 0 || deltaTime > 4000){
                     shakeCnt = 1;
@@ -79,6 +76,7 @@ public class CallDetectService extends Service {
                 }
                 else if (++shakeCnt >= 3){
                     Intent localIntent = new Intent(Constants.SMS_MSG);
+                    localIntent.putExtra(Constants.SMS_PLAY_ACTION, "play");
                     // Broadcasts the Intent to receivers in this app.
                     LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(localIntent);
                     shakeCnt = 0;
@@ -90,17 +88,26 @@ public class CallDetectService extends Service {
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
         }
     };
-*/
 
     private final class ServiceReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(final Context context, final Intent intent) {
             if (intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
-//                mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
-                LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(new Intent(Constants.SCREEN_ON));
+                try {
+                    LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(new Intent(Constants.SCREEN_ON));
+                    if ( mSensorManager != null)
+                        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
-//                mSensorManager.unregisterListener(mSensorListener);
-                LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(new Intent(Constants.SCREEN_OFF));                //other stuff
+                try {
+                    LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(new Intent(Constants.SCREEN_OFF));
+                    if (mSensorManager != null )
+                        mSensorManager.unregisterListener(mSensorListener);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -115,7 +122,6 @@ public class CallDetectService extends Service {
         BroadcastReceiver mReceiver = new ServiceReceiver();
         registerReceiver(mReceiver, filter);
 
-/*
         mAccel = 0.00f;
         mAccelCurrent = SensorManager.GRAVITY_EARTH;
         mAccelLast = SensorManager.GRAVITY_EARTH;
@@ -124,10 +130,18 @@ public class CallDetectService extends Service {
         mXAccelCurrent = mYAccelCurrent = mZAccelCurrent = mAccelCurrent;
         mXAccelLast = mYAccelLast = mZAccelLast = mAccelLast;
 
-
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
-*/
+        try {
+            mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            Sensor sensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            mSensorManager.registerListener(mSensorListener, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        } catch (Exception e) {
+          //  e.printStackTrace();
+            Intent localIntent = new Intent(Constants.BROADCAST_ACTION)
+                    // Puts the status into the Intent
+                    .putExtra(Constants.EXTRA_TEST_STRING, "sensor manager create failed");
+            // Broadcasts the Intent to receivers in this app.
+            LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+        }
 
         return START_STICKY;
     }

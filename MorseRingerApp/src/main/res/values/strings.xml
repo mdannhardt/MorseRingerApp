@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Morse Code Ringer</string>
     <string name="text_setup">Morse Code Ringer Setup</string>
-    <string name="text_api_info">Developer: KA4CDN. Version 2.0.1</string>
+    <string name="text_api_info">Developer: KA4CDN. Version 2.0.2</string>
     <string name="text_wpm">WPM:</string>
     <string name="text_tone">Tone:</string>
     <string name="text_test_msg">Test Msg:</string>
