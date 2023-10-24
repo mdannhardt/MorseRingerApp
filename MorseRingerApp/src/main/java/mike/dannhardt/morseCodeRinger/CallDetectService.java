@@ -16,7 +16,6 @@ import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
 
 /**
  * Created by Mike on 10/4/2015.
@@ -25,64 +24,75 @@ public class CallDetectService extends Service {
     private MorsePlayer m_MorsePlayer;
 
     private SensorManager mSensorManager;
-    private float mAccel; // acceleration apart from gravity
-    private float mAccelCurrent; // current acceleration including gravity
-    private float mAccelLast; // last acceleration including gravity
-    private float mXAccel; // acceleration apart from gravity
-    private float mXAccelCurrent; // current acceleration including gravity
-    private float mXAccelLast; // last acceleration including gravity
-    private float mYAccel; // acceleration apart from gravity
-    private float mYAccelCurrent; // current acceleration including gravity
-    private float mYAccelLast; // last acceleration including gravity
-    private float mZAccel; // acceleration apart from gravity
-    private float mZAccelCurrent; // current acceleration including gravity
-    private float mZAccelLast; // last acceleration including gravity
-    private long shakeStart = 0;
-    private int shakeCnt = 0;
+    private long gestureStartTime = 0;
+    private int gestureCnt = 0;
 
+    // Watch for the user to gesture to play the last message.
+    // Gesture is from level to rolled three times. ( flat, rolled x three times)
     private final SensorEventListener mSensorListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent se) {
-            float x = se.values[0];
-            float y = se.values[1];
-            float z = se.values[2];
+            float pitch = se.values[1];
+            float roll = se.values[2];
 
-            mAccelLast = mAccelCurrent;
-            mAccelCurrent = (float) Math.sqrt((double) (x*x + y*y + z*z));
-            float delta = mAccelCurrent - mAccelLast;
-            mAccel = mAccel * 0.9f + delta; // perform low-cut filter
+            long deltaTime = System.currentTimeMillis() - gestureStartTime;
+            if (deltaTime > 6000 )
+                gestureCnt = 0;
 
-            mXAccelLast = mXAccelCurrent;
-            mXAccelCurrent = x;
-            delta = mXAccelCurrent - mXAccelLast;
-            mXAccel = mXAccel * 0.9f + delta; // perform low-cut filter
-
-            mYAccelLast = mYAccelCurrent;
-            mYAccelCurrent = y;
-            delta = mYAccelCurrent - mYAccelLast;
-            mYAccel = mYAccel * 0.9f + delta; // perform low-cut filter
-
-            mZAccelLast = mZAccelCurrent;
-            mZAccelCurrent = z;
-            delta = mZAccelCurrent - mZAccelLast;
-            mZAccel = mZAccel * 0.9f + delta; // perform low-cut filter
-
-            // Current 'shake detect' is three rapid accelerations (>4.5 magnitude) within 4seconds
-            if ( mYAccel > 4.5 ) {
-                long deltaTime = System.currentTimeMillis() - shakeStart;
-                if (shakeCnt == 0 || deltaTime > 4000){
-                    shakeCnt = 1;
-                    shakeStart = System.currentTimeMillis();
+            switch(gestureCnt)
+            {
+                case 0: // wait for initial position, flat
+                    if ( roll < 10 && roll > -10  ) {
+                        gestureStartTime = System.currentTimeMillis();
+                        gestureCnt = 1;
+                    }
+                    break;
+                case 1: case 3:
+                if ( roll > 60 || roll < -60 ) {
+                    gestureCnt++;
                 }
-                else if (++shakeCnt >= 3){
+                break;
+                case 2: case 4:
+                if ( roll < 10 && roll > -10 ) {
+                    gestureCnt++;
+                }
+                if ( gestureCnt == 5) {
                     Intent localIntent = new Intent(Constants.SMS_MSG);
                     localIntent.putExtra(Constants.SMS_PLAY_ACTION, "play");
                     // Broadcasts the Intent to receivers in this app.
                     LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(localIntent);
-                    shakeCnt = 0;
-                    shakeStart = 0;
+                    gestureCnt = 0;
+                    gestureStartTime = 0;
                 }
+                break;
             }
+     /*       switch(gestureCnt)
+            {
+                case 0: // wait for initial position
+                    if ( pitch > 10 ) {
+                        gestureStartTime = System.currentTimeMillis();
+                        gestureCnt = 1;
+                    }
+                    break;
+                case 1: case 3:
+                if ( pitch < -90 ) {
+                    gestureCnt++;
+                }
+                break;
+                case 2: case 4:
+                if ( pitch > 10 ) {
+                    gestureCnt++;
+                }
+                if ( gestureCnt == 5) {
+                    Intent localIntent = new Intent(Constants.SMS_MSG);
+                    localIntent.putExtra(Constants.SMS_PLAY_ACTION, "play");
+                    // Broadcasts the Intent to receivers in this app.
+                    LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(localIntent);
+                    gestureCnt = 0;
+                    gestureStartTime = 0;
+                }
+                break;
+            }*/
         }
 
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -96,7 +106,7 @@ public class CallDetectService extends Service {
                 try {
                     LocalBroadcastManager.getInstance(getBaseContext()).sendBroadcast(new Intent(Constants.SCREEN_ON));
                     if ( mSensorManager != null)
-                        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL);
+                        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), SensorManager.SENSOR_DELAY_NORMAL);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -122,17 +132,9 @@ public class CallDetectService extends Service {
         BroadcastReceiver mReceiver = new ServiceReceiver();
         registerReceiver(mReceiver, filter);
 
-        mAccel = 0.00f;
-        mAccelCurrent = SensorManager.GRAVITY_EARTH;
-        mAccelLast = SensorManager.GRAVITY_EARTH;
-
-        mXAccel = mYAccel = mZAccel = mAccel;
-        mXAccelCurrent = mYAccelCurrent = mZAccelCurrent = mAccelCurrent;
-        mXAccelLast = mYAccelLast = mZAccelLast = mAccelLast;
-
         try {
             mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-            Sensor sensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+            Sensor sensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
             mSensorManager.registerListener(mSensorListener, sensor, SensorManager.SENSOR_DELAY_NORMAL);
         } catch (Exception e) {
           //  e.printStackTrace();
